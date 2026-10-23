@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daegu Trip Weekly Budget Tracker</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            daegu: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#10b981',
+              600: '#059669',
+              900: '#064e3b',
+            },
+            festive: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Hide number spinners */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-20 selection:bg-rose-500 selection:text-white">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto px-4 pt-6 sm:pt-10">
+
+    <!-- Header & Location Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <i class="fa-solid fa-plane-arrival"></i> Daegu, South Korea
+          </span>
+          <span class="text-xs text-slate-400">Nov 2 – Dec 1, 2026 (30 Days)</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 text-white flex items-center gap-2">
+          Weekly Travel Budget
+          <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-normal">KRW / USD</span>
+        </h1>
+      </div>
+
+      <!-- Quick Actions / Rate Bar -->
+      <div class="flex items-center gap-2">
+        <button id="openRateModalBtn" class="flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/70 rounded-xl text-xs font-medium text-slate-300 transition">
+          <i class="fa-solid fa-arrow-right-arrow-left text-emerald-400"></i>
+          <span>1 USD = <strong id="headerRateLabel" class="text-white mono">₩1,350</strong></span>
+        </button>
+        <button id="openSettingsBtn" title="Settings & Reset" class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/70 rounded-xl text-slate-300 transition">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Global Stats Cards -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3.5 my-6">
+      <!-- Total Budget Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden shadow-lg">
+        <div class="text-xs font-medium text-slate-400">Total Budget</div>
+        <div class="text-lg sm:text-2xl font-bold text-white mt-1 mono" id="topTotalBudgetUSD">$1,200.00</div>
+        <div class="text-xs text-slate-400 mono mt-0.5" id="topTotalBudgetKRW">₩1,620,000</div>
+        <div class="absolute -right-2 -bottom-2 text-slate-800/40 text-4xl"><i class="fa-solid fa-wallet"></i></div>
+      </div>
+
+      <!-- Total Spent Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden shadow-lg">
+        <div class="text-xs font-medium text-slate-400">Total Spent</div>
+        <div class="text-lg sm:text-2xl font-bold text-amber-400 mt-1 mono" id="topTotalSpentUSD">$0.00</div>
+        <div class="text-xs text-slate-400 mono mt-0.5" id="topTotalSpentKRW">₩0</div>
+        <div class="absolute -right-2 -bottom-2 text-slate-800/40 text-4xl"><i class="fa-solid fa-receipt"></i></div>
+      </div>
+
+      <!-- Remaining Funds Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden shadow-lg col-span-2 md:col-span-2">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="text-xs font-medium text-slate-400">Remaining Trip Funds</div>
+            <div class="text-xl sm:text-3xl font-extrabold text-emerald-400 mt-1 mono" id="topTotalRemainingUSD">$1,200.00</div>
+            <div class="text-xs sm:text-sm text-slate-300 mono mt-0.5" id="topTotalRemainingKRW">₩1,620,000</div>
+          </div>
+          <button id="addExpenseBtn" class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+            <i class="fa-solid fa-plus"></i> Add Expense
+          </button>
+        </div>
+        <!-- Global Progress Bar -->
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-3">
+          <div id="topProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Simulated Date / Active Day Picker -->
+    <section class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2 text-slate-300">
+        <i class="fa-regular fa-calendar-check text-emerald-400 text-sm"></i>
+        <span><strong>Simulate / Today's Date:</strong> Use this to calculate how many days are remaining in each pool.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="date" id="currentSimulatedDate" min="2026-11-02" max="2026-12-01" value="2026-11-02" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+        <button id="resetDateToStartBtn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 text-xs">Trip Start (Nov 2)</button>
+      </div>
+    </section>
+
+    <!-- Weekly Pools Grid -->
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-bold text-white flex items-center gap-2">
+        <span>Weekly Budget Pools</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-normal">Bundled Funds</span>
+      </h2>
+      <button id="reallocatePoolsBtn" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+        <i class="fa-solid fa-pen-to-square"></i> Adjust Allocations
+      </button>
+    </div>
+
+    <div id="poolsContainer" class="space-y-4">
+      <!-- Dynamically generated pool cards -->
+    </div>
+
+    <!-- Expense Ledger Section -->
+    <section class="mt-10">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Trip Expense Ledger
+            <span id="ledgerCountBadge" class="text-xs font-mono font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-400">0 records</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Discretionary expenses manually entered as you spend.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="ledgerFilterPool" class="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500">
+            <option value="all">All Pools</option>
+            <option value="1">Week 1 (Nov 2 - 8)</option>
+            <option value="2">Week 2 (Nov 9 - 15)</option>
+            <option value="3">Week 3 (Nov 16 - 22)</option>
+            <option value="4">Week 4 (Nov 23 - 29)</option>
+            <option value="5">Week 5 (Nov 30 - Dec 1)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Ledger Container -->
+      <div id="ledgerList" class="mt-4 space-y-2">
+        <!-- Empty State Default -->
+        <div id="emptyLedgerPlaceholder" class="p-8 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/30">
+          <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500 mb-3 text-lg">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <p class="text-sm font-medium text-slate-300">No expenses recorded yet</p>
+          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Your ledger is completely clean. Click the "+ Add Expense" button above when you buy coffee, metro tickets, or celebration dinners.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: Add Expense -->
+  <div id="expenseModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-cart-plus text-emerald-400"></i> Record New Expense
+        </h3>
+        <button id="closeExpenseModalBtn" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="addExpenseForm" class="mt-4 space-y-4">
+        <!-- Currency & Amount Switch -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Amount Spent</label>
+          <div class="flex rounded-xl overflow-hidden border border-slate-700 bg-slate-800 focus-within:border-emerald-500">
+            <div class="flex bg-slate-950 p-1">
+              <button type="button" id="currToggleKRW" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 text-slate-950 transition">₩ KRW</button>
+              <button type="button" id="currToggleUSD" class="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">$ USD</button>
+            </div>
+            <input type="number" step="any" min="0" id="expenseAmountInput" placeholder="0" required class="w-full bg-slate-800 px-3 py-2 text-white mono font-bold text-base focus:outline-none">
+          </div>
+          <!-- Conversion preview hint -->
+          <div class="text-right text-[11px] text-slate-400 mt-1 mono" id="currencyConversionPreview">
+            Approx: $0.00 USD
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Description / Memo</label>
+          <input type="text" id="expenseDescInput" placeholder="e.g. AREX express ticket, Seomun street food, coffee" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- Date & Target Pool -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Date</label>
+            <input type="date" id="expenseDateInput" min="2026-11-02" max="2026-12-01" value="2026-11-02" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Assigned Pool</label>
+            <select id="expensePoolSelect" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="1">Week 1 (Nov 2-8)</option>
+              <option value="2">Week 2 (Nov 9-15) 🎉</option>
+              <option value="3">Week 3 (Nov 16-22)</option>
+              <option value="4">Week 4 (Nov 23-29)</option>
+              <option value="5">Week 5 (Nov 30-Dec 1)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-emerald-500/20 transition">
+            Save Expense
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Exchange Rate Settings -->
+  <div id="rateModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-coins text-amber-400"></i> Exchange Rate
+        </h3>
+        <button id="closeRateModalBtn" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">1 USD = [?] KRW</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-slate-500 font-bold">₩</span>
+            <input type="number" id="exchangeRateInput" step="1" min="500" max="2500" value="1350" class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-white mono font-bold focus:outline-none focus:border-emerald-500">
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5">Default is 1 USD = 1,350 KRW. Adjust if the rate shifts during your trip.</p>
+        </div>
+
+        <button id="saveRateBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-semibold rounded-xl text-xs transition">
+          Update Exchange Rate
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Adjust Pool Allocations -->
+  <div id="allocationsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-emerald-400"></i> Rebalance Weekly Pools
+        </h3>
+        <button id="closeAllocationsModalBtn" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="mt-4 space-y-3" id="allocationInputsList">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+        <span class="text-slate-400">Allocation Sum:</span>
+        <span id="allocationSumLabel" class="font-bold mono text-emerald-400">$1,200.00 / $1,200</span>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button id="resetDefaultAllocationsBtn" class="w-1/3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition">
+          Default
+        </button>
+        <button id="saveAllocationsBtn" class="w-2/3 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition">
+          Save Allocations
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Settings & Reset -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-gear text-slate-400"></i> Data Management
+        </h3>
+        <button id="closeSettingsModalBtn" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <button id="exportDataBtn" class="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition">
+          <span><i class="fa-solid fa-download mr-2 text-emerald-400"></i> Export JSON Backup</span>
+          <i class="fa-solid fa-chevron-right text-slate-500"></i>
+        </button>
+
+        <button id="clearAllExpensesBtn" class="w-full flex items-center justify-between px-3.5 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-semibold rounded-xl border border-rose-500/20 transition">
+          <span><i class="fa-solid fa-trash mr-2 text-rose-400"></i> Clear All Expenses</span>
+          <i class="fa-solid fa-chevron-right text-rose-500/50"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-200 pointer-events-none">
+    <div class="bg-slate-900 border border-slate-700 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs">
+      <i class="fa-solid fa-circle-check text-emerald-400"></i>
+      <span id="toastMessage">Done</span>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    // Initial configuration & default trip structure
+    const DEFAULT_TOTAL_BUDGET_USD = 1200;
+    const DEFAULT_EXCHANGE_RATE = 1350; // 1 USD = 1,350 KRW
+
+    const DEFAULT_POOLS = [
+      {
+        id: 1,
+        title: "Week 1",
+        dates: "Nov 2 - Nov 8, 2026",
+        startDate: "2026-11-02",
+        endDate: "2026-11-08",
+        days: 7,
+        allocatedUSD: 220,
+        isPriority: false,
+        badge: "Arrival & Transit"
+      },
+      {
+        id: 2,
+        title: "Week 2 (Priority Week)",
+        dates: "Nov 9 - Nov 15, 2026",
+        startDate: "2026-11-09",
+        endDate: "2026-11-15",
+        days: 7,
+        allocatedUSD: 380,
+        isPriority: true,
+        badge: "🎉 Birthday (Nov 12) & Anniversary (Nov 14)",
+        specialNotes: "Higher allocation pool for celebrations, gifts & special dates."
+      },
+      {
+        id: 3,
+        title: "Week 3",
+        dates: "Nov 16 - Nov 22, 2026",
+        startDate: "2026-11-16",
+        endDate: "2026-11-22",
+        days: 7,
+        allocatedUSD: 230,
+        isPriority: false,
+        badge: "Mid-Stay"
+      },
+      {
+        id: 4,
+        title: "Week 4",
+        dates: "Nov 23 - Nov 29, 2026",
+        startDate: "2026-11-23",
+        endDate: "2026-11-29",
+        days: 7,
+        allocatedUSD: 230,
+        isPriority: false,
+        badge: "Routine & Leisure"
+      },
+      {
+        id: 5,
+        title: "Final Days (Week 5)",
+        dates: "Nov 30 - Dec 1, 2026",
+        startDate: "2026-11-30",
+        endDate: "2026-12-01",
+        days: 2,
+        allocatedUSD: 140,
+        isPriority: false,
+        badge: "Wrap-Up & Departure"
+      }
+    ];
+
+    // State Variables
+    let exchangeRate = DEFAULT_EXCHANGE_RATE;
+    let pools = JSON.parse(JSON.stringify(DEFAULT_POOLS));
+    let expenses = []; // Ledger starts completely empty
+    let simulatedDate = "2026-11-02";
+    let activeExpenseCurrency = "KRW"; // toggle state: 'KRW' or 'USD'
+
+    // LocalStorage Keys
+    const LS_RATE = "daegu_exchange_rate";
+    const LS_POOLS = "daegu_pools_alloc";
+    const LS_EXPENSES = "daegu_expenses_ledger";
+    const LS_DATE = "daegu_simulated_date";
+
+    // Load from LocalStorage
+    function loadState() {
+      const savedRate = localStorage.getItem(LS_RATE);
+      if (savedRate) exchangeRate = parseFloat(savedRate) || DEFAULT_EXCHANGE_RATE;
+
+      const savedPools = localStorage.getItem(LS_POOLS);
+      if (savedPools) {
+        try {
+          const parsed = JSON.parse(savedPools);
+          if (Array.isArray(parsed) && parsed.length === 5) {
+            pools = parsed;
+          }
+        } catch (e) {
+          console.error("Could not parse saved pools", e);
+        }
+      }
+
+      const savedExpenses = localStorage.getItem(LS_EXPENSES);
+      if (savedExpenses) {
+        try {
+          expenses = JSON.parse(savedExpenses);
+        } catch (e) {
+          expenses = [];
+        }
+      }
+
+      const savedDate = localStorage.getItem(LS_DATE);
+      if (savedDate) simulatedDate = savedDate;
+
+      // Update inputs
+      document.getElementById("headerRateLabel").innerText = `₩${exchangeRate.toLocaleString()}`;
+      document.getElementById("exchangeRateInput").value = exchangeRate;
+      document.getElementById("currentSimulatedDate").value = simulatedDate;
+      document.getElementById("expenseDateInput").value = simulatedDate;
+    }
+
+    function saveState() {
+      localStorage.setItem(LS_RATE, exchangeRate);
+      localStorage.setItem(LS_POOLS, JSON.stringify(pools));
+      localStorage.setItem(LS_EXPENSES, JSON.stringify(expenses));
+      localStorage.setItem(LS_DATE, simulatedDate);
+    }
+
+    // Helper formatting
+    function formatUSD(amount) {
+      return "$" + Number(amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatKRW(amount) {
+      return "₩" + Math.round(Number(amount || 0)).toLocaleString("en-US");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMessage").innerText = msg;
+      toast.classList.remove("translate-y-20", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0");
+      }, 2400);
+    }
+
+    // Auto-map date to pool ID
+    function getPoolIdByDate(dateStr) {
+      for (let p of pools) {
+        if (dateStr >= p.startDate && dateStr <= p.endDate) {
+          return p.id;
+        }
+      }
+      return 1;
+    }
+
+    // Calculate pool statistics
+    function computePoolStats(pool) {
+      // Expenses matching this pool
+      const poolExpenses = expenses.filter(e => e.poolId === pool.id);
+      const spentUSD = poolExpenses.reduce((sum, e) => sum + e.amountUSD, 0);
+      const spentKRW = spentUSD * exchangeRate;
+      const budgetUSD = pool.allocatedUSD;
+      const budgetKRW = budgetUSD * exchangeRate;
+      const remainingUSD = budgetUSD - spentUSD;
+      const remainingKRW = remainingUSD * exchangeRate;
+
+      // Remaining days calculation based on simulatedDate
+      let daysRemainingInPool = pool.days;
+      
+      if (simulatedDate < pool.startDate) {
+        // Hasn't started yet -> full days left
+        daysRemainingInPool = pool.days;
+      } else if (simulatedDate > pool.endDate) {
+        // Pool already passed -> 0 days remaining
+        daysRemainingInPool = 0;
+      } else {
+        // Currently in pool: remaining days is inclusive of today until endDate
+        const current = new Date(simulatedDate + "T00:00:00");
+        const end = new Date(pool.endDate + "T00:00:00");
+        const diffDays = Math.round((end - current) / (1000 * 60 * 60 * 24)) + 1;
+        daysRemainingInPool = Math.max(1, diffDays);
+      }
+
+      // Recommended daily allowance
+      let recommendedDailyUSD = 0;
+      let recommendedDailyKRW = 0;
+      if (daysRemainingInPool > 0) {
+        recommendedDailyUSD = remainingUSD > 0 ? (remainingUSD / daysRemainingInPool) : 0;
+        recommendedDailyKRW = recommendedDailyUSD * exchangeRate;
+      }
+
+      const percentUsed = budgetUSD > 0 ? Math.min(100, Math.round((spentUSD / budgetUSD) * 100)) : 0;
+      const isOverBudget = remainingUSD < 0;
+
+      return {
+        spentUSD,
+        spentKRW,
+        budgetUSD,
+        budgetKRW,
+        remainingUSD,
+        remainingKRW,
+        daysRemainingInPool,
+        recommendedDailyUSD,
+        recommendedDailyKRW,
+        percentUsed,
+        isOverBudget,
+        expenseCount: poolExpenses.length
+      };
+    }
+
+    // Render Global Overview & Top Metrics
+    function renderOverview() {
+      const totalBudgetUSD = pools.reduce((acc, p) => acc + p.allocatedUSD, 0);
+      const totalBudgetKRW = totalBudgetUSD * exchangeRate;
+
+      const totalSpentUSD = expenses.reduce((acc, e) => acc + e.amountUSD, 0);
+      const totalSpentKRW = totalSpentUSD * exchangeRate;
+
+      const totalRemainingUSD = totalBudgetUSD - totalSpentUSD;
+      const totalRemainingKRW = totalRemainingUSD * exchangeRate;
+
+      document.getElementById("topTotalBudgetUSD").innerText = formatUSD(totalBudgetUSD);
+      document.getElementById("topTotalBudgetKRW").innerText = formatKRW(totalBudgetKRW);
+
+      document.getElementById("topTotalSpentUSD").innerText = formatUSD(totalSpentUSD);
+      document.getElementById("topTotalSpentKRW").innerText = formatKRW(totalSpentKRW);
+
+      document.getElementById("topTotalRemainingUSD").innerText = formatUSD(totalRemainingUSD);
+      document.getElementById("topTotalRemainingKRW").innerText = formatKRW(totalRemainingKRW);
+
+      // Status color for remaining
+      const remEl = document.getElementById("topTotalRemainingUSD");
+      if (totalRemainingUSD < 0) {
+        remEl.className = "text-xl sm:text-3xl font-extrabold text-rose-500 mt-1 mono";
+      } else {
+        remEl.className = "text-xl sm:text-3xl font-extrabold text-emerald-400 mt-1 mono";
+      }
+
+      const pct = totalBudgetUSD > 0 ? Math.min(100, (totalSpentUSD / totalBudgetUSD) * 100) : 0;
+      const bar = document.getElementById("topProgressBar");
+      bar.style.width = pct + "%";
+      if (pct > 90) {
+        bar.className = "h-full bg-rose-500 transition-all duration-300";
+      } else {
+        bar.className = "h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all duration-300";
+      }
+
+      document.getElementById("headerRateLabel").innerText = `₩${exchangeRate.toLocaleString()}`;
+    }
+
+    // Render Weekly Pools Cards
+    function renderPools() {
+      const container = document.getElementById("poolsContainer");
+      container.innerHTML = "";
+
+      pools.forEach(pool => {
+        const stats = computePoolStats(pool);
+        const isCurrentActivePool = (simulatedDate >= pool.startDate && simulatedDate <= pool.endDate);
+
+        const card = document.createElement("div");
+        card.className = `rounded-2xl border transition-all duration-200 overflow-hidden ${
+          pool.isPriority 
+            ? 'bg-gradient-to-b from-festive-900/20 via-slate-900 to-slate-900 border-rose-500/40 shadow-rose-950/20 shadow-lg' 
+            : 'bg-slate-900/80 border-slate-800'
+        } ${isCurrentActivePool ? 'ring-2 ring-emerald-500/50' : ''}`;
+
+        card.innerHTML = `
+          <!-- Pool Card Header -->
+          <div class="p-4 sm:p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="text-sm font-bold text-white flex items-center gap-2">
+                  ${pool.title}
+                </span>
+                <span class="text-xs text-slate-400 mono">(${pool.dates})</span>
+                
+                ${pool.isPriority ? `
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    <i class="fa-solid fa-cake-candles text-rose-400"></i> ${pool.badge}
+                  </span>
+                ` : `
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-400">
+                    ${pool.badge}
+                  </span>
+                `}
+
+                ${isCurrentActivePool ? `
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <i class="fa-solid fa-bolt"></i> Active Week
+                  </span>
+                ` : ''}
+              </div>
+
+              <!-- Quick action to add directly into this pool -->
+              <div class="flex items-center gap-2">
+                <button onclick="openExpenseModalWithPool(${pool.id})" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-plus text-emerald-400"></i> Spend
+                </button>
+              </div>
+            </div>
+
+            <!-- Pool Financial Metrics Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+              <!-- Pool Budget -->
+              <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-[11px] text-slate-400">Bundled Allocation</div>
+                <div class="text-base sm:text-lg font-bold text-white mono mt-0.5">${formatUSD(stats.budgetUSD)}</div>
+                <div class="text-[11px] text-slate-400 mono">${formatKRW(stats.budgetKRW)}</div>
+              </div>
+
+              <!-- Pool Spent -->
+              <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                <div class="text-[11px] text-slate-400">Spent (${stats.expenseCount} items)</div>
+                <div class="text-base sm:text-lg font-bold ${stats.spentUSD > 0 ? 'text-amber-400' : 'text-slate-400'} mono mt-0.5">${formatUSD(stats.spentUSD)}</div>
+                <div class="text-[11px] text-slate-400 mono">${formatKRW(stats.spentKRW)}</div>
+              </div>
+
+              <!-- Recommended Daily Allowance Feature -->
+              <div class="col-span-2 sm:col-span-1 bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-xl">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-semibold text-emerald-300">Daily Recommended</span>
+                  <span class="text-[10px] mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">${stats.daysRemainingInPool}d left</span>
+                </div>
+                <div class="text-base sm:text-lg font-extrabold text-emerald-300 mono mt-0.5">
+                  ${formatUSD(stats.recommendedDailyUSD)} <span class="text-xs font-normal text-emerald-400/80">/ day</span>
+                </div>
+                <div class="text-[11px] text-emerald-400 mono">
+                  ~${formatKRW(stats.recommendedDailyKRW)} / day
+                </div>
+              </div>
+            </div>
+
+            <!-- Pool Remaining Bar & Progress -->
+            <div class="mt-3.5 flex items-center justify-between text-xs">
+              <span class="text-slate-400">Remaining Balance:</span>
+              <span class="font-bold mono ${stats.isOverBudget ? 'text-rose-400' : 'text-slate-200'}">
+                ${formatUSD(stats.remainingUSD)} <span class="text-slate-500 font-normal">(${formatKRW(stats.remainingKRW)})</span>
+              </span>
+            </div>
+
+            <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mt-1.5">
+              <div class="h-full ${stats.isOverBudget ? 'bg-rose-500' : (pool.isPriority ? 'bg-rose-500' : 'bg-emerald-500')} transition-all" style="width: ${stats.percentUsed}%"></div>
+            </div>
+
+            ${pool.specialNotes ? `
+              <p class="text-[11px] text-rose-300/80 mt-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-heart text-rose-400"></i> ${pool.specialNotes}
+              </p>
+            ` : ''}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Render Expense Ledger Table
+    function renderLedger() {
+      const filterPoolId = document.getElementById("ledgerFilterPool").value;
+      const listEl = document.getElementById("ledgerList");
+      const badgeEl = document.getElementById("ledgerCountBadge");
+
+      let filtered = expenses;
+      if (filterPoolId !== "all") {
+        filtered = expenses.filter(e => e.poolId === parseInt(filterPoolId));
+      }
+
+      badgeEl.innerText = `${filtered.length} record${filtered.length === 1 ? '' : 's'}`;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-8 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/30">
+            <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500 mb-3 text-lg">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
+            <p class="text-sm font-medium text-slate-300">No expenses recorded for this selection</p>
+            <p class="text-xs text-slate-500 mt-1">Use the "+ Add Expense" button above to record purchases.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = "";
+
+      // Sort newest date first
+      const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      sorted.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-3.5 bg-slate-900/70 border border-slate-800/80 rounded-xl hover:border-slate-700 transition";
+
+        const pool = pools.find(p => p.id === item.poolId);
+        const poolBadge = pool ? (pool.isPriority ? `W2 (Nov 9-15) 🎉` : `Week ${pool.id}`) : `Pool ${item.poolId}`;
+
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 text-sm">
+              <i class="fa-solid fa-tag"></i>
+            </div>
+            <div>
+              <div class="text-xs sm:text-sm font-semibold text-white">${escapeHtml(item.description)}</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[11px] text-slate-400 mono">${item.date}</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">${poolBadge}</span>
+                ${item.originalCurrency ? `<span class="text-[10px] text-slate-500">entered in ${item.originalCurrency}</span>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-xs sm:text-sm font-bold text-white mono">-${formatUSD(item.amountUSD)}</div>
+              <div class="text-[11px] text-slate-400 mono">-${formatKRW(item.amountKRW)}</div>
+            </div>
+            <button onclick="deleteExpense('${item.id}')" title="Delete entry" class="text-slate-500 hover:text-rose-400 p-1.5 transition">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        `;
+
+        listEl.appendChild(row);
+      });
+    }
+
+    function escapeHtml(string) {
+      return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Delete single expense
+    window.deleteExpense = function(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      saveState();
+      updateAll();
+      showToast("Expense removed from pool");
+    };
+
+    // Open Modal preset with pool
+    window.openExpenseModalWithPool = function(poolId) {
+      document.getElementById("expensePoolSelect").value = poolId;
+      const pool = pools.find(p => p.id === poolId);
+      if (pool) {
+        // Set date to today if within pool, else pool startDate
+        if (simulatedDate >= pool.startDate && simulatedDate <= pool.endDate) {
+          document.getElementById("expenseDateInput").value = simulatedDate;
+        } else {
+          document.getElementById("expenseDateInput").value = pool.startDate;
+        }
+      }
+      openExpenseModal();
+    };
+
+    function updateAll() {
+      renderOverview();
+      renderPools();
+      renderLedger();
+    }
+
+    // MODAL CONTROLS: Expense
+    const expenseModal = document.getElementById("expenseModal");
+    function openExpenseModal() {
+      expenseModal.classList.remove("hidden");
+      document.getElementById("expenseAmountInput").focus();
+    }
+    function closeExpenseModal() {
+      expenseModal.classList.add("hidden");
+      document.getElementById("addExpenseForm").reset();
+      updateCurrencyConversionHint();
+    }
+
+    // Currency Switcher in Expense Form
+    const currToggleKRW = document.getElementById("currToggleKRW");
+    const currToggleUSD = document.getElementById("currToggleUSD");
+    const amountInput = document.getElementById("expenseAmountInput");
+    const previewHint = document.getElementById("currencyConversionPreview");
+
+    function setExpenseCurrency(curr) {
+      activeExpenseCurrency = curr;
+      if (curr === "KRW") {
+        currToggleKRW.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 text-slate-950 transition";
+        currToggleUSD.className = "px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        amountInput.placeholder = "₩ (e.g. 15000)";
+      } else {
+        currToggleUSD.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 text-slate-950 transition";
+        currToggleKRW.className = "px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        amountInput.placeholder = "$ (e.g. 12.50)";
+      }
+      updateCurrencyConversionHint();
+    }
+
+    function updateCurrencyConversionHint() {
+      const val = parseFloat(amountInput.value) || 0;
+      if (val <= 0) {
+        previewHint.innerText = activeExpenseCurrency === "KRW" ? "Approx: $0.00 USD" : "Approx: ₩0 KRW";
+        return;
+      }
+
+      if (activeExpenseCurrency === "KRW") {
+        const usd = val / exchangeRate;
+        previewHint.innerText = `Approx: ${formatUSD(usd)} USD (at ₩${exchangeRate.toLocaleString()}/$)`;
+      } else {
+        const krw = val * exchangeRate;
+        previewHint.innerText = `Approx: ${formatKRW(krw)} KRW (at ₩${exchangeRate.toLocaleString()}/$)`;
+      }
+    }
+
+    currToggleKRW.addEventListener("click", () => setExpenseCurrency("KRW"));
+    currToggleUSD.addEventListener("click", () => setExpenseCurrency("USD"));
+    amountInput.addEventListener("input", updateCurrencyConversionHint);
+
+    // Auto-update pool select when date picker changes
+    document.getElementById("expenseDateInput").addEventListener("change", (e) => {
+      const pickedDate = e.target.value;
+      if (pickedDate) {
+        document.getElementById("expensePoolSelect").value = getPoolIdByDate(pickedDate);
+      }
+    });
+
+    // Form Submit: Add Expense
+    document.getElementById("addExpenseForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const rawAmount = parseFloat(amountInput.value);
+      const desc = document.getElementById("expenseDescInput").value.trim();
+      const date = document.getElementById("expenseDateInput").value;
+      const poolId = parseInt(document.getElementById("expensePoolSelect").value);
+
+      if (isNaN(rawAmount) || rawAmount <= 0) {
+        return;
+      }
+
+      let amountUSD = 0;
+      let amountKRW = 0;
+
+      if (activeExpenseCurrency === "KRW") {
+        amountKRW = rawAmount;
+        amountUSD = rawAmount / exchangeRate;
+      } else {
+        amountUSD = rawAmount;
+        amountKRW = rawAmount * exchangeRate;
+      }
+
+      const newExpense = {
+        id: "exp_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        description: desc || "Discretionary Purchase",
+        date: date,
+        poolId: poolId,
+        amountUSD: amountUSD,
+        amountKRW: amountKRW,
+        originalCurrency: activeExpenseCurrency
+      };
+
+      expenses.push(newExpense);
+      saveState();
+      updateAll();
+      closeExpenseModal();
+      showToast("Expense logged to Pool " + poolId);
+    });
+
+    // MODAL: Exchange Rate
+    const rateModal = document.getElementById("rateModal");
+    document.getElementById("openRateModalBtn").addEventListener("click", () => {
+      document.getElementById("exchangeRateInput").value = exchangeRate;
+      rateModal.classList.remove("hidden");
+    });
+    document.getElementById("closeRateModalBtn").addEventListener("click", () => rateModal.classList.add("hidden"));
+    document.getElementById("saveRateBtn").addEventListener("click", () => {
+      const newRate = parseFloat(document.getElementById("exchangeRateInput").value);
+      if (newRate && newRate > 0) {
+        exchangeRate = newRate;
+        // recalculate stored expense KRWs
+        expenses = expenses.map(e => ({
+          ...e,
+          amountKRW: e.amountUSD * exchangeRate
+        }));
+        saveState();
+        updateAll();
+        rateModal.classList.add("hidden");
+        showToast(`Rate updated: 1 USD = ₩${exchangeRate.toLocaleString()}`);
+      }
+    });
+
+    // MODAL: Rebalance Allocations
+    const allocModal = document.getElementById("allocationsModal");
+    function renderAllocationInputs() {
+      const container = document.getElementById("allocationInputsList");
+      container.innerHTML = "";
+
+      pools.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800";
+        row.innerHTML = `
+          <div class="text-xs">
+            <div class="font-bold text-white">${p.title}</div>
+            <div class="text-[11px] text-slate-400">${p.dates} (${p.days}d)</div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-400">$</span>
+            <input type="number" step="5" min="0" data-pool-id="${p.id}" value="${p.allocatedUSD}" class="alloc-input w-24 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-1 text-xs mono font-bold text-right focus:outline-none focus:border-emerald-500">
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      function recalculateSum() {
+        const inputs = document.querySelectorAll(".alloc-input");
+        let sum = 0;
+        inputs.forEach(inp => sum += parseFloat(inp.value) || 0);
+        const sumLabel = document.getElementById("allocationSumLabel");
+        sumLabel.innerText = `${formatUSD(sum)} / $${DEFAULT_TOTAL_BUDGET_USD}`;
+        if (Math.round(sum) === DEFAULT_TOTAL_BUDGET_USD) {
+          sumLabel.className = "font-bold mono text-emerald-400";
+        } else {
+          sumLabel.className = "font-bold mono text-rose-400";
+        }
+      }
+
+      document.querySelectorAll(".alloc-input").forEach(inp => {
+        inp.addEventListener("input", recalculateSum);
+      });
+      recalculateSum();
+    }
+
+    document.getElementById("reallocatePoolsBtn").addEventListener("click", () => {
+      renderAllocationInputs();
+      allocModal.classList.remove("hidden");
+    });
+    document.getElementById("closeAllocationsModalBtn").addEventListener("click", () => allocModal.classList.add("hidden"));
+
+    document.getElementById("resetDefaultAllocationsBtn").addEventListener("click", () => {
+      pools = JSON.parse(JSON.stringify(DEFAULT_POOLS));
+      renderAllocationInputs();
+    });
+
+    document.getElementById("saveAllocationsBtn").addEventListener("click", () => {
+      const inputs = document.querySelectorAll(".alloc-input");
+      inputs.forEach(inp => {
+        const pid = parseInt(inp.getAttribute("data-pool-id"));
+        const val = parseFloat(inp.value) || 0;
+        const target = pools.find(p => p.id === pid);
+        if (target) target.allocatedUSD = val;
+      });
+
+      saveState();
+      updateAll();
+      allocModal.classList.add("hidden");
+      showToast("Weekly allocations updated");
+    });
+
+    // MODAL: Settings
+    const settingsModal = document.getElementById("settingsModal");
+    document.getElementById("openSettingsBtn").addEventListener("click", () => settingsModal.classList.remove("hidden"));
+    document.getElementById("closeSettingsModalBtn").addEventListener("click", () => settingsModal.classList.add("hidden"));
+
+    document.getElementById("exportDataBtn").addEventListener("click", () => {
+      const exportObject = {
+        exchangeRate,
+        pools,
+        expenses,
+        simulatedDate,
+        exportedAt: new Date().toISOString()
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `daegu_trip_budget_${simulatedDate}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      settingsModal.classList.add("hidden");
+      showToast("Budget backup exported");
+    });
+
+    document.getElementById("clearAllExpensesBtn").addEventListener("click", () => {
+      if (confirm("Are you sure you want to delete all logged expenses? This will restore remaining funds to full.")) {
+        expenses = [];
+        saveState();
+        updateAll();
+        settingsModal.classList.add("hidden");
+        showToast("Expense ledger reset to empty");
+      }
+    });
+
+    // Simulated Date change handlers
+    document.getElementById("currentSimulatedDate").addEventListener("change", (e) => {
+      simulatedDate = e.target.value;
+      saveState();
+      updateAll();
+    });
+
+    document.getElementById("resetDateToStartBtn").addEventListener("click", () => {
+      simulatedDate = "2026-11-02";
+      document.getElementById("currentSimulatedDate").value = simulatedDate;
+      saveState();
+      updateAll();
+      showToast("Reset simulated date to Nov 2");
+    });
+
+    // Ledger filter
+    document.getElementById("ledgerFilterPool").addEventListener("change", renderLedger);
+
+    // Modal open buttons
+    document.getElementById("addExpenseBtn").addEventListener("click", () => {
+      document.getElementById("expensePoolSelect").value = getPoolIdByDate(simulatedDate);
+      document.getElementById("expenseDateInput").value = simulatedDate;
+      openExpenseModal();
+    });
+    document.getElementById("closeExpenseModalBtn").addEventListener("click", closeExpenseModal);
+
+    // Initial Load
+    window.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      setExpenseCurrency("KRW");
+      updateAll();
+    });
+  </script>
+</body>
+</html>
